@@ -25,7 +25,7 @@ resource "google_service_account" "sa" {
 resource "google_artifact_registry_repository" "datanalytica-repo" {
   location      = "us-west1"
   repository_id = var.repository_id
-  description   = "Data Analytica Repository"
+  description   = "Project Hub Repository"
   format        = "DOCKER"
 }
 
@@ -56,12 +56,15 @@ module "oidc" {
   }
 }
 
+data "google_storage_project_service_account" "gcs_account" {
+}
+
 resource "random_id" "bucket_prefix" {
   byte_length = 8
 }
 
 resource "google_kms_key_ring" "keyring" {
-  name     = "datanalytica-key-ring"
+  name     = "${var.gcp_project_id}-key-ring"
   location = var.gcp_region
 }
 
@@ -75,8 +78,6 @@ resource "google_kms_crypto_key" "terraform_state_bucket" {
   }
 }
 
-data "google_storage_project_service_account" "gcs_account" {
-}
 
 resource "google_kms_crypto_key_iam_binding" "binding" {
   crypto_key_id = google_kms_crypto_key.terraform_state_bucket.id
@@ -105,7 +106,7 @@ resource "google_storage_bucket" "default" {
 
 terraform {
  backend "gcs" {
-   bucket  = "datanalytica69_bucket"
+   bucket  = "project-hub-tfstate"
    prefix  = "terraform/state"
  }
 }
